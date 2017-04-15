@@ -3,136 +3,144 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package tugas6;
+package tugas7;
 
 /**
  *
  * @author USER
  */
 
-import tugas6.*;
+
 import java.sql.*;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import tugas7.koneksi;
-public class FormDataBuku extends javax.swing.JFrame {
+public class form_data_buku extends javax.swing.JFrame {
 
-    private DefaultTableModel model;
-    private Connection con = koneksi.getConnection();
-    private Statement stt;
-    private ResultSet rss;
-    /**
-     * Creates new form form_data_buku
-     */
-    public FormDataBuku() {
-        initComponents();
+private DefaultTableModel model;
+private Connection con = koneksi.getConnection();
+private Statement stt;
+private ResultSet rss;
+private boolean status;
+private void InitTable(){ //inisiasi tabel
+    model = new DefaultTableModel();//pembuatan variabel baru model
+    model.addColumn("ID BUKU");//penambahan kolom ID pada tabel model
+    model.addColumn("JUDUL");
+    model.addColumn("PENULIS");
+    model.addColumn("HARGA");
+    jTable1.setModel(model);
+}
+private void TambahData(String judul,String penulis,String harga){//Method untuk menambahkan data
+    try{//blok percobaan
+        String sql =
+                "INSERT INTO buku VALUES(NULL,'"+judul+"','"+penulis+"',"+harga+")";//pengisian tabel pada databaase
+        stt = con.createStatement();//pembuatan statement
+        stt.executeUpdate(sql);
+        model.addRow(new Object[]{judul,penulis,harga});//penambahan objek berupa array
+        while(rss.next()){
+        Object[] o=new Object[2];
+        o[0]=rss.getString("judul").toLowerCase();
+        o[1]=rss.getString("penulis").toLowerCase();
+        if(o[0].equals(judul.toLowerCase())&& o[1].equals(penulis.toLowerCase())){
+            JOptionPane.showMessageDialog(null,"Data Sudah ada");
+            status=false;
+            break;
+        }
     }
-    
-    private void InitTable(){
-        model = new DefaultTableModel();
-        model.addColumn("id");
-        model.addColumn("Judul");
-        model.addColumn("Penulis");
-        model.addColumn("Harga");
-        
-        jTable1.setModel(model);
-        
+    if(status==true){
+        TambahData(judul,penulis,harga);
     }
-    
-    private void TampilData(){
+    }
+    catch(SQLException e){//blok penagkap kesalaan
+        System.out.println(e.getMessage());//jika terjadi kesalahan akan menampilkan pemberitahuan kesalahan yang terjadi
+    }
+}
+private void ValidasiData(String judul,String penulis,String harga){
+try{
+    String sql="select*from buku";
+    stt=con.createStatement();
+    rss=stt.executeQuery(sql);
+    while(rss.next()){
+        Object[] o=new Object[2];
+        o[0]=rss.getString("judul").toLowerCase();
+        o[1]=rss.getString("penulis").toLowerCase();
+        if(o[0].equals(judul.toLowerCase())&& o[1].equals(penulis.toLowerCase())){
+            JOptionPane.showMessageDialog(null,"Data Sudah ada");
+            status=false;
+            break;
+        }
+    }
+    if(status==true){
+        TambahData(judul,penulis,harga);
+    }
+}
+catch(SQLException e){
+    System.out.println(e.getMessage());
+}
+}
+    private void TampilData(){//method untuk menampilkan data
+        try{//blok percobaan
+            String sql = "SELECT * FROM buku";//variabel sql yang bernilai menampilkan isi tabel pada database
+            stt = con.createStatement();
+            rss = stt.executeQuery(sql);
+            while(rss.next()){//tampilkan data 
+                Object[] o = new Object[4];//penambahan array untuk pengisian tabel
+                o[0] = rss.getString("id");
+                o[1] = rss.getString("judul");
+                o[2] = rss.getString("penulis");
+                o[3] = rss.getString("harga");
+                model.addRow(o);
+            }
+        }catch(SQLException e){//digunakan untuk menangkap kesalahan yang terjadi
+            System.out.println(e.getMessage());
+        }
+    }
+private boolean UbahData(String id, String judul, String penulis, String harga){//method untuk mengubah data
+        try{//blok percoban
+            String sql = "UPDATE buku SET judul='"+judul+"', penulis='"+penulis+"', harga='"+harga+"' WHERE id="+id+";";//variabel sql untuk pengupdatetan di tabel
+            stt = con.createStatement();
+            stt.executeUpdate(sql);
+            return true;
+        }catch(SQLException e){//penangkap kesalahan
+            System.out.println(e.getMessage());
+            return false;
+        }
+}
+ private boolean HapusData(String id){//method untuk menghapus data
         try{
-            String sql = "SELECT * FROM buku1";
+        String sql = "DELETE FROM buku WHERE id='"+id+"'";
+        stt=con.createStatement();
+        stt.executeUpdate(sql);
+        return true;//menghapus baris dalam tabel
+    }catch(SQLException e){//blok penangkap kesalahan
+            System.out.println(e.getMessage());
+            return false;
+        }
+    }
+ private void PencarianData(String by, String cari){//method untuk pencarian 
+        try{
+            String sql = "SELECT * FROM buku where "+by+" LIKE'%"+cari+"%';";//menampilkan seluruh isi tabel
             stt = con.createStatement();
             rss = stt.executeQuery(sql);
             while(rss.next()){
-                Object[] o = new Object[3];
-                o[0] = rss.getString("judul");
-                o[1] = rss.getString("penulis");
-                o[2] = rss.getString("harga");
-                model.addRow(o);
+                Object[] data = new Object[4];//penambahan array yang akan ditambahkan ke tabel
+                data[0] = rss.getString("id");
+                data[1] = rss.getString("judul");
+                data[2] = rss.getString("penulis");
+                data[3] = rss.getString("harga");
+            model.addRow(data);
             }
-        }catch(SQLException e){
+    }catch(SQLException e){//digunakan untuk menangkap kesalahan
             System.out.println(e.getMessage());
+    }
         }
-    }
-    
-    private void TambahData(String judul,String penulis,String harga){
-        try{
-            String sql = "INSERT INTO buku1 VALUES (NULL, '"+judul+"','"+penulis+"',"+harga+")";
-            stt = con.createStatement();
-            stt.executeUpdate(sql);
-            
-        }catch(SQLException e){
-            System.out.println(e.getMessage());
-        }
+    /**
+     * Creates new form form_data_buku
+     */
+    public form_data_buku() {
+        initComponents();
     }
     
     
-    
-    private void CariData(){//method untuk mencari data
-        
-        try{
-            
-            String sql = "SELECT * FROM buku WHERE judul='"+jTextField3.getText()+"'|| penulis='"+jTextField3.getText()+"'|| harga='"+jTextField3.getText()+"'";
-            
-            stt = con.createStatement();           
-            rss = stt.executeQuery(sql);          
-            while(rss.next()){
-            Object[] o = new Object[3];                            
-            o[0] = rss.getString("judul");                
-            o[1] = rss.getString("penulis");                
-            o[2] = rss.getString("harga");
-                
-            model.addRow(o);
-            
-            }
-        
-        }catch(SQLException e){
-            //digunakan untuk menangkap kesalahan            
-            System.out.println(e.getMessage());
-        
-    }
-    
-}
-   
-    
-    private void iya(String judul, String penulis, String harga){
-        
-        try{
-            String sql = "SELECT * FROM buku";            
-            stt = con.createStatement();            
-            rss = stt.executeQuery(sql);            
-            while(rss.next()){                
-            Object[] o = new Object[3];                
-            o[0] = rss.getString("judul").toLowerCase();                    
-            o[1] = rss.getString("penulis").toLowerCase();
-                
-                
-            if(o[0].equals(judul.toLowerCase()) && o[1].equals(penulis.toLowerCase())){
-                    JOptionPane.showMessageDialog(null,"Data sudah ada");
-                    
-                boolean kamu = false;
-                    
-                break;
-                
-            }
-        
-    }
-        boolean kamu = false;
-            
-        if(kamu==true)
-                
-        TambahData(judul,penulis,harga);
-    
-    }catch(SQLException e){
-    //digunakan untuk menangkap kesalahan
-            
-    System.out.println(e.getMessage());
-    
-    }
-    
-}
- 
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -295,18 +303,17 @@ public class FormDataBuku extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(jTable1);
 
-        jLabel5.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         jLabel5.setText("Search : ");
 
-        jLabel6.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        jLabel6.setText("By : ");
-
-        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Judul", "Penulis", "Harga" }));
-        jComboBox2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBox2ActionPerformed(evt);
+        jTextField3.addCaretListener(new javax.swing.event.CaretListener() {
+            public void caretUpdate(javax.swing.event.CaretEvent evt) {
+                jTextField3CaretUpdate(evt);
             }
         });
+
+        jLabel6.setText("By : ");
+
+        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "judul", "penulis", "harga" }));
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -323,12 +330,12 @@ public class FormDataBuku extends javax.swing.JFrame {
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 399, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel5)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jTextField3)
                         .addGap(18, 18, 18)
-                        .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel6)
-                        .addGap(18, 18, 18)
-                        .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -340,13 +347,19 @@ public class FormDataBuku extends javax.swing.JFrame {
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
-                    .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel6)
-                    .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 13, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel5)
+                            .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 22, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel6)
+                            .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(18, 18, 18)))
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -380,62 +393,63 @@ public class FormDataBuku extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        String judul = jTextField1.getText();
-        String penulis = jComboBox1.getSelectedItem().toString();
-        String harga = jTextField2.getText();
+        String judul=jTextField1.getText();
+        String penulis=jComboBox1.getSelectedItem().toString();
+        String harga=jTextField2.getText();
         TambahData(judul,penulis,harga);
-        InitTable();
-        TampilData();
+        ValidasiData(judul,penulis,harga);
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
-        try{
-            Class.forName("com.mysql.jdbc.Driver");
-            Connection koneksi=DriverManager.getConnection("jdbc:mysql://localhost:3306/praktikum_visual", "root", "");
-            koneksi.createStatement().execute ("update buku1 set judul='"+jTextField1.getText()+ "',penulis='"+jComboBox1.getSelectedItem()+ 
-                    "',harga='"+jTextField2.getText()+"'where judul='"+jTable1.getValueAt(jTable1.getSelectedRow(),0).toString()+"'");
-            TampilData();
-            
-        }catch(Exception e){
-            System.out.println(e);
-        }
-           
+        int baris = jTable1.getSelectedRow();
+        String id = jTable1.getValueAt(baris, 0).toString();
+        String judul = jTextField1.getText();
+        String penulis = jComboBox1.getSelectedItem().toString();
+        String harga = jTextField2.getText();
+        
+        if(UbahData(id, judul, penulis, harga))
+            JOptionPane.showMessageDialog(null, "Berhasil ubah data");
+        else
+            JOptionPane.showMessageDialog(null, "Gagal ubah data");
+            InitTable();TampilData();
+        
+        
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
         // TODO add your handling code here:
         int baris = jTable1.getSelectedRow();
         
-        String judul_edit = jTable1.getValueAt(baris, 0).toString();
-        String penulis_edit = jTable1.getValueAt(baris, 1).toString();
-        String harga_edit = jTable1.getValueAt(baris, 2).toString();
-        
-        jTextField1.setText(judul_edit);
-        jComboBox1.setSelectedItem(penulis_edit);
-        jTextField2.setText(harga_edit);
+        jTextField1.setText(jTable1.getValueAt(baris, 1).toString());
+        jComboBox1.setSelectedItem(jTable1.getValueAt(baris, 2).toString());
+        jTextField2.setText(jTable1.getValueAt(baris, 3).toString());
     }//GEN-LAST:event_jTable1MouseClicked
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
-        try{
-            Class.forName("com.mysql.jdbc.Driver");
-            Connection koneksi=DriverManager.getConnection("jdbc:mysql://localhost:3306/praktikum_visual", "root","");
-            koneksi.createStatement().execute ("delete from buku1 where judul='"+jTextField1.getText()+"'");
-            TampilData();
-            
-        }catch(Exception e){
-            System.out.println(e);
-        }
+        int baris = jTable1.getSelectedRow();
+        String id = jTable1.getValueAt(baris, 0).toString();
         
-        //hapus disini harus kerja 2 kali, maksudnya keluar dulu baru masuk lagi dan data sudah terhapus begitu juga dengan updatenya
+        if(HapusData(id))
+            JOptionPane.showMessageDialog(null, "Berhasil hapus data");
+        else
+            JOptionPane.showMessageDialog(null, "Gagal hapus data");
+            InitTable();TampilData();
+        
+        
+        
     }//GEN-LAST:event_jButton3ActionPerformed
 
-    private void jComboBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox2ActionPerformed
+    private void jTextField3CaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_jTextField3CaretUpdate
         // TODO add your handling code here:
-        CariData();
-        
-    }//GEN-LAST:event_jComboBox2ActionPerformed
+        InitTable();
+        if(jTextField3.getText().length()==0){
+            TampilData();
+        }else{
+            PencarianData(jComboBox2.getSelectedItem().toString(),jTextField3.getText());
+        }
+    }//GEN-LAST:event_jTextField3CaretUpdate
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         // TODO add your handling code here:
@@ -460,13 +474,13 @@ public class FormDataBuku extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(FormDataBuku.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(form_data_buku.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(FormDataBuku.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(form_data_buku.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(FormDataBuku.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(form_data_buku.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(FormDataBuku.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(form_data_buku.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
         //</editor-fold>
@@ -476,7 +490,7 @@ public class FormDataBuku extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new FormDataBuku().setVisible(true);
+                new form_data_buku().setVisible(true);
             }
         });
     }
